@@ -77,6 +77,7 @@ def evaluate_image(
         "images": [img_b64],
         "stream": False,
         "format": "json",
+        "options": {"num_ctx": 4096},
     }
 
     try:

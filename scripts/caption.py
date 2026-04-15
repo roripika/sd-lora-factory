@@ -49,6 +49,7 @@ def generate_caption(
         "prompt": prompt,
         "images": [img_b64],
         "stream": False,
+        "options": {"num_ctx": 4096},
     }
     resp = requests.post(f"{ollama_url}/api/generate", json=payload, timeout=120)
     resp.raise_for_status()
