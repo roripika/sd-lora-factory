@@ -1,0 +1,75 @@
+# yuuri_outfit.yaml
+# キャラクター「香月夕莉」の服装LoRA学習データセット構築用設定
+# 目標: professional pants suit + glasses + long black hair tied back
+#       + tall muscular-but-slim build (173cm)
+
+dataset_name: yuuri_outfit
+
+# --- [1] クロール設定 ---
+crawl:
+  keywords:
+    # 服装スタイル（英語）
+    - "anime woman business suit glasses black hair ponytail full body"
+    - "tall anime woman pantsuit professional glasses"
+    - "anime professional woman suit black hair tied back"
+    - "female anime character business attire glasses standing"
+    - "pantsuit anime woman glasses long black hair full body front"
+    - "muscular slim woman suit anime glasses professional"
+    - "office woman anime suit glasses tall full body"
+    # 実写参照
+    - "tall woman business suit glasses black hair professional photo"
+    - "professional female suit glasses black hair full body"
+    # 日本語キーワード
+    - "眼鏡 スーツ 女性 アニメ 全身 黒髪"
+    - "パンツスーツ 長い黒髪 眼鏡 女性 立ち絵 アニメ"
+    - "キャリア女性 スーツ 眼鏡 アニメ イラスト"
+  engines:
+    - bing
+    - google
+  max_per_keyword: 80
+  output_dir: datasets/{dataset_name}/raw
+
+# --- [2] VLMフィルター設定 ---
+vlm_filter:
+  ollama_url: http://127.0.0.1:11434
+  model: qwen2.5vl:7b
+  input_dir: datasets/{dataset_name}/raw
+  output_dir: datasets/{dataset_name}/filtered
+  must_have:
+    - "single female character visible"
+    - "full body or at least 3/4 body visible"
+    - "business suit or professional attire (jacket + trousers or jacket + skirt)"
+    - "glasses visible on character"
+    - "character appears to be adult woman"
+  must_not:
+    - "multiple people or group shot"
+    - "casual wear (t-shirt only, jeans, hoodie)"
+    - "fantasy armor, mecha, or magical costume"
+    - "swimwear or revealing clothing"
+    - "school uniform (sailor, blazer+sailor style)"
+    - "male character"
+  min_score: 0.65
+
+# --- [3] キャプション生成設定 ---
+caption:
+  ollama_url: http://127.0.0.1:11434
+  model: qwen2.5vl:7b
+  input_dir: datasets/{dataset_name}/filtered
+  output_dir: datasets/{dataset_name}/captioned
+  trigger_word: "yuuri_outfit"
+  prompt: |
+    Describe this image for Stable Diffusion LoRA training data.
+    Focus specifically on:
+    1. Suit jacket (color, lapel style, fit)
+    2. Lower body (trousers or skirt — color, type, fit)
+    3. Inner shirt/blouse (color, collar style)
+    4. Footwear
+    5. Glasses (frame color and shape)
+    6. Hair style (tied back, ponytail, updo — specify)
+    7. Build description (tall, slim, athletic, etc.)
+
+    Format: comma-separated tags in this order:
+    trigger_word, 1woman, [build/height tags], [hair], [glasses], [suit jacket], [trousers/skirt], [inner top], [footwear], [pose/view]
+
+    Be precise about suit colors (e.g. "charcoal grey suit" not just "dark suit").
+    Note if trousers vs skirt. Note if hair is up/tied/loose.

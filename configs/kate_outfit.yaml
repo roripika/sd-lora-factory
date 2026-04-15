@@ -1,0 +1,75 @@
+# kate_outfit.yaml
+# キャラクター「ケイト・ミラー」の服装LoRA学習データセット構築用設定
+# 目標: structured white school blazer + navy pleated skirt + collared shirt + slim tie ribbon
+#       + academy emblem patch + knee-high socks + clean student loafers
+#       + high blonde ponytail
+
+dataset_name: kate_outfit
+
+# --- [1] クロール設定 ---
+crawl:
+  keywords:
+    # 制服スタイル（英語）
+    - "anime girl white school blazer navy pleated skirt full body"
+    - "blonde ponytail girl white blazer uniform anime front view"
+    - "high ponytail school uniform anime girl knee-high socks loafers"
+    - "white blazer collared shirt tie navy skirt anime girl"
+    - "futuristic academy uniform anime girl white jacket"
+    - "school uniform blazer pleated skirt loafers anime full body"
+    - "anime girl high ponytail uniform standing front view"
+    # 実写参照（日本の女子制服）
+    - "school uniform white blazer navy skirt japanese girl"
+    - "high school girl blazer uniform knee socks loafers full body"
+    # 日本語キーワード
+    - "白いブレザー 制服 ネイビー スカート アニメ 女子 全身"
+    - "金髪 ポニーテール 制服 アニメ 正面"
+    - "ブレザー 制服 ニーソ ローファー アニメ 立ち絵"
+  engines:
+    - bing
+    - google
+  max_per_keyword: 80
+  output_dir: datasets/{dataset_name}/raw
+
+# --- [2] VLMフィルター設定 ---
+vlm_filter:
+  ollama_url: http://127.0.0.1:11434
+  model: qwen2.5vl:7b
+  input_dir: datasets/{dataset_name}/raw
+  output_dir: datasets/{dataset_name}/filtered
+  must_have:
+    - "single female character visible"
+    - "full body or at least 3/4 body visible"
+    - "blazer or structured jacket as upper body clothing"
+    - "pleated skirt or school skirt visible"
+    - "school uniform or formal student attire overall"
+  must_not:
+    - "multiple people or group shot"
+    - "swimwear, underwear, or revealing clothing"
+    - "fantasy armor, mecha, or magical costume"
+    - "casual wear (hoodie, jeans, t-shirt only)"
+    - "sportswear or gym uniform"
+    - "male character"
+  min_score: 0.65
+
+# --- [3] キャプション生成設定 ---
+caption:
+  ollama_url: http://127.0.0.1:11434
+  model: qwen2.5vl:7b
+  input_dir: datasets/{dataset_name}/filtered
+  output_dir: datasets/{dataset_name}/captioned
+  trigger_word: "kate_outfit"
+  prompt: |
+    Describe this image for Stable Diffusion LoRA training data.
+    Focus specifically on:
+    1. Upper body clothing (blazer/jacket color, type, collar style)
+    2. Lower body clothing (skirt color, style, length)
+    3. Legwear (socks, stockings type and length)
+    4. Footwear
+    5. Accessories (tie, ribbon, patches, badge)
+    6. Hair style and color if visible
+
+    Format: comma-separated tags in this order:
+    trigger_word, 1girl, [age/build tags], [hair], [upper clothing], [lower clothing], [legwear], [footwear], [accessories], [pose/view]
+
+    Be specific about colors (e.g. "navy blue" not just "blue").
+    Note any structural details like "structured blazer" vs "casual jacket".

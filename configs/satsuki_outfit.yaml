@@ -1,0 +1,75 @@
+# satsuki_outfit.yaml
+# キャラクター「三條さつき」の服装LoRA学習データセット構築用設定
+# 目標: pants suit + glasses + short stature (147cm) + young-looking
+#       + frilly accent details + carrying E-ink tablet
+
+dataset_name: satsuki_outfit
+
+# --- [1] クロール設定 ---
+crawl:
+  keywords:
+    # 服装スタイル（英語）
+    - "petite anime woman business suit glasses frilly details"
+    - "short anime woman professional suit glasses full body"
+    - "cute professional anime girl glasses pantsuit frills"
+    - "small stature anime woman glasses formal attire"
+    - "young looking anime woman suit glasses frilly blouse"
+    - "anime girl business suit glasses lace frills standing"
+    - "short height female anime suit professional frilly accessories"
+    # 実写参照
+    - "petite woman business suit glasses frilly blouse"
+    - "short woman glasses office suit high contrast"
+    # 日本語キーワード
+    - "小柄 スーツ 眼鏡 フリル 女性 アニメ 全身"
+    - "ちびキャラ パンツスーツ 眼鏡 フリル アニメ 立ち絵"
+    - "ショート 眼鏡 スーツ フリル OL アニメ"
+  engines:
+    - bing
+    - google
+  max_per_keyword: 80
+  output_dir: datasets/{dataset_name}/raw
+
+# --- [2] VLMフィルター設定 ---
+vlm_filter:
+  ollama_url: http://127.0.0.1:11434
+  model: qwen2.5vl:7b
+  input_dir: datasets/{dataset_name}/raw
+  output_dir: datasets/{dataset_name}/filtered
+  must_have:
+    - "single female character visible"
+    - "full body or at least 3/4 body visible"
+    - "business suit or professional attire overall"
+    - "glasses visible"
+    - "small or petite build apparent"
+  must_not:
+    - "multiple people or group shot"
+    - "fantasy armor, mecha, or magical costume"
+    - "swimwear or revealing clothing"
+    - "school uniform (sailor style)"
+    - "tall or obviously large character"
+    - "male character"
+  min_score: 0.60
+
+# --- [3] キャプション生成設定 ---
+caption:
+  ollama_url: http://127.0.0.1:11434
+  model: qwen2.5vl:7b
+  input_dir: datasets/{dataset_name}/filtered
+  output_dir: datasets/{dataset_name}/captioned
+  trigger_word: "satsuki_outfit"
+  prompt: |
+    Describe this image for Stable Diffusion LoRA training data.
+    Focus specifically on:
+    1. Suit jacket (color, fit — note if petite/fitted)
+    2. Lower body (trousers or skirt — color, type)
+    3. Inner top details — especially frills, lace, ruffles, or decorative collar
+    4. Footwear
+    5. Glasses (frame style)
+    6. Accessories (brooch, hair accessories, tablet/device if visible)
+    7. Overall size impression (petite, small, short stature)
+
+    Format: comma-separated tags in this order:
+    trigger_word, 1woman, [petite/small build], [hair], [glasses], [suit jacket], [trousers/skirt], [inner top with frills], [footwear], [accessories], [pose/view]
+
+    Always note frilly or lace details explicitly (e.g. "frilly blouse collar", "lace cuffs").
+    Note "petite build" or "small stature" explicitly.
