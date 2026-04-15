@@ -18,6 +18,8 @@ import yaml
 from PIL import Image
 from tqdm import tqdm
 
+from env import resolve_ollama_url
+
 
 def load_config(config_path: str) -> dict:
     with open(config_path) as f:
@@ -114,7 +116,7 @@ def vlm_filter(config_path: str, ollama_url: str | None = None, dry_run: bool = 
     input_dir = Path(fc["input_dir"])
     output_dir = Path(fc["output_dir"])
     model = fc.get("model", "qwen2.5vl:7b")
-    url = ollama_url or fc.get("ollama_url", "http://127.0.0.1:11434")
+    url = resolve_ollama_url(ollama_url, fc.get("ollama_url"))
     must_have = fc.get("must_have", [])
     must_not = fc.get("must_not", [])
     min_score = fc.get("min_score", 0.7)

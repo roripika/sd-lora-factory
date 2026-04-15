@@ -29,7 +29,7 @@ crawl:
 
 # --- [2] VLMフィルター設定 ---
 vlm_filter:
-  ollama_url: http://100.89.188.24:11434
+  ollama_url: http://127.0.0.1:11434
   model: qwen2.5vl:7b
   input_dir: datasets/{dataset_name}/raw
   output_dir: datasets/{dataset_name}/filtered
@@ -50,7 +50,7 @@ vlm_filter:
 
 # --- [3] キャプション生成設定 ---
 caption:
-  ollama_url: http://100.89.188.24:11434
+  ollama_url: http://127.0.0.1:11434
   model: qwen2.5vl:7b
   input_dir: datasets/{dataset_name}/filtered
   output_dir: datasets/{dataset_name}/captioned

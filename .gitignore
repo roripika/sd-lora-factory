@@ -1,3 +1,6 @@
+# 個人設定（絶対にコミットしない）
+.env
+
 # データセット（大容量バイナリ）
 datasets/*/raw/
 datasets/*/filtered/

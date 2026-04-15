@@ -17,6 +17,8 @@ import requests
 import yaml
 from tqdm import tqdm
 
+from env import resolve_ollama_url
+
 
 def load_config(config_path: str) -> dict:
     with open(config_path) as f:
@@ -75,7 +77,7 @@ def caption(config_path: str, ollama_url: str | None = None, dry_run: bool = Fal
     input_dir = Path(cc["input_dir"])
     output_dir = Path(cc["output_dir"])
     model = cc.get("model", "qwen2.5vl:7b")
-    url = ollama_url or cc.get("ollama_url", "http://127.0.0.1:11434")
+    url = resolve_ollama_url(ollama_url, cc.get("ollama_url"))
     trigger_word = cc.get("trigger_word", "")
     prompt = cc.get("prompt", "Describe this image with comma-separated tags for Stable Diffusion training.")
 
