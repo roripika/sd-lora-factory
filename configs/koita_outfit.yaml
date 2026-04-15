@@ -1,0 +1,72 @@
+# koita_outfit.yaml
+# キャラクター「コイタ・カマラ」の服装LoRA学習データセット構築用設定
+# 目標: olive green t-shirt + mustard yellow jacket knotted around waist + dark cargo pants + work boots
+
+dataset_name: koita_outfit
+
+# --- [1] クロール設定 ---
+crawl:
+  keywords:
+    # 服装の組み合わせ（英語）
+    - "olive green t-shirt cargo pants teenage boy anime style"
+    - "cargo pants yellow jacket tied around waist anime boy"
+    - "work boots cargo pants teen boy street fashion"
+    - "green tshirt dark cargo pants slim boy full body front"
+    - "mustard yellow jacket waist street casual anime teen"
+    # 実写参照（モデルバイアス修正のため）
+    - "cargo pants olive green shirt teenage boy full body"
+    - "work jacket tied waist cargo pants young man"
+    - "streetwear cargo pants green shirt boots teen male"
+    # 日本語キーワード
+    - "カーゴパンツ 緑 Tシャツ 少年 全身 アニメ"
+    - "カーゴパンツ ジャケット 腰巻き 男性 イラスト"
+    - "ワークブーツ カーゴパンツ 少年 正面"
+  engines:
+    - bing
+    - google
+  max_per_keyword: 80
+  output_dir: datasets/{dataset_name}/raw
+
+# --- [2] VLMフィルター設定 ---
+vlm_filter:
+  ollama_url: http://100.89.188.24:11434
+  model: qwen2.5vl:7b
+  input_dir: datasets/{dataset_name}/raw
+  output_dir: datasets/{dataset_name}/filtered
+  must_have:
+    - "single male character visible"
+    - "full body or at least 3/4 body visible"
+    - "cargo pants or utility pants visible"
+    - "t-shirt, casual top, or simple shirt as upper body clothing"
+    - "character appears to be teenager or young adult"
+  must_not:
+    - "multiple people or group shot"
+    - "suit, formal wear, or school uniform"
+    - "swimwear, underwear, or bare torso"
+    - "fantasy armor, mecha, or magical costume"
+    - "tracksuit or sportswear as main outfit"
+    - "dress or skirt"
+  min_score: 0.65
+
+# --- [3] キャプション生成設定 ---
+caption:
+  ollama_url: http://100.89.188.24:11434
+  model: qwen2.5vl:7b
+  input_dir: datasets/{dataset_name}/filtered
+  output_dir: datasets/{dataset_name}/captioned
+  # LoRAのトリガーワード（学習時・推論時に使用）
+  trigger_word: "koita_outfit"
+  prompt: |
+    Describe this image for Stable Diffusion LoRA training data.
+    Focus specifically on:
+    1. Upper body clothing (color, type, style)
+    2. Lower body clothing (color, type, style)
+    3. Footwear
+    4. Any jacket, outerwear, or accessories and how they are worn
+    5. Character build and posture
+
+    Format: comma-separated tags in this order:
+    trigger_word, 1boy, [age/build tags], [upper clothing], [lower clothing], [footwear], [extras], [pose/view]
+
+    Be specific about colors (e.g. "olive green" not just "green").
+    If a jacket is tied around the waist, describe it as "jacket tied around waist" or "jacket around hips".
