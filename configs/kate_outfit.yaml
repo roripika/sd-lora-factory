@@ -50,11 +50,13 @@ vlm_filter:
     - "sportswear or gym uniform"
     - "male character"
   min_score: 0.65
+  num_ctx: 4096
 
 # --- [3] キャプション生成設定 ---
 caption:
   ollama_url: http://127.0.0.1:11434
   model: qwen2.5vl:7b
+  num_ctx: 4096
   input_dir: datasets/{dataset_name}/filtered
   output_dir: datasets/{dataset_name}/captioned
   trigger_word: "kate_outfit"

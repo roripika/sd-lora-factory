@@ -67,6 +67,7 @@ def evaluate_image(
     ollama_url: str,
     model: str,
     min_score: float,
+    num_ctx: int = 4096,
 ) -> dict:
     prompt = build_filter_prompt(must_have, must_not)
     img_b64 = image_to_base64(image_path)
@@ -77,7 +78,7 @@ def evaluate_image(
         "images": [img_b64],
         "stream": False,
         "format": "json",
-        "options": {"num_ctx": 4096},
+        "options": {"num_ctx": num_ctx},
     }
 
     try:
@@ -121,6 +122,7 @@ def vlm_filter(config_path: str, ollama_url: str | None = None, dry_run: bool = 
     must_have = fc.get("must_have", [])
     must_not = fc.get("must_not", [])
     min_score = fc.get("min_score", 0.7)
+    num_ctx = fc.get("num_ctx", 4096)
 
     images = collect_images(input_dir)
     print(f"[filter] dataset: {cfg['dataset_name']}")
@@ -141,7 +143,7 @@ def vlm_filter(config_path: str, ollama_url: str | None = None, dry_run: bool = 
     results_log = []
 
     for img_path in tqdm(images, desc="VLM filter"):
-        result = evaluate_image(img_path, must_have, must_not, url, model, min_score)
+        result = evaluate_image(img_path, must_have, must_not, url, model, min_score, num_ctx)
 
         log_entry = {"file": str(img_path), **result}
         results_log.append(log_entry)

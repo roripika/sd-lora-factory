@@ -42,6 +42,7 @@ def generate_caption(
     trigger_word: str,
     ollama_url: str,
     model: str,
+    num_ctx: int = 4096,
 ) -> str:
     img_b64 = image_to_base64(image_path)
     payload = {
@@ -49,7 +50,7 @@ def generate_caption(
         "prompt": prompt,
         "images": [img_b64],
         "stream": False,
-        "options": {"num_ctx": 4096},
+        "options": {"num_ctx": num_ctx},
     }
     resp = requests.post(f"{ollama_url}/api/generate", json=payload, timeout=120)
     resp.raise_for_status()
@@ -81,6 +82,7 @@ def caption(config_path: str, ollama_url: str | None = None, dry_run: bool = Fal
     url = resolve_ollama_url(ollama_url, cc.get("ollama_url"))
     trigger_word = cc.get("trigger_word", "")
     prompt = cc.get("prompt", "Describe this image with comma-separated tags for Stable Diffusion training.")
+    num_ctx = cc.get("num_ctx", 4096)
 
     images = collect_images(input_dir)
     print(f"[caption] dataset     : {cfg['dataset_name']}")
@@ -100,7 +102,7 @@ def caption(config_path: str, ollama_url: str | None = None, dry_run: bool = Fal
 
     for img_path in tqdm(images, desc="Caption"):
         try:
-            cap = generate_caption(img_path, prompt, trigger_word, url, model)
+            cap = generate_caption(img_path, prompt, trigger_word, url, model, num_ctx)
         except Exception as e:
             errors += 1
             tqdm.write(f"  [ERROR] {img_path.name}: {e}")
