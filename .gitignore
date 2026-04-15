@@ -1,0 +1,25 @@
+# データセット（大容量バイナリ）
+datasets/*/raw/
+datasets/*/filtered/
+datasets/*/captioned/
+
+# モデルファイル
+*.safetensors
+*.ckpt
+*.pth
+*.bin
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+
+# ログ
+logs/
+*.log
+
+# 一時ファイル
+*.tmp
+*.bak
+.DS_Store

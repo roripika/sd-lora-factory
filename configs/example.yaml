@@ -1,0 +1,49 @@
+# sd-lora-factory 設定ファイル例
+# このファイルをコピーして用途ごとにカスタマイズしてください
+
+dataset_name: example_outfit
+
+# --- [1] クロール設定 ---
+crawl:
+  keywords:
+    - "cargo pants green t-shirt anime boy"
+    - "work outfit teenager street style front"
+    - "カーゴパンツ Tシャツ 男性 全身 アニメ"
+  engines:
+    - bing       # bing / google / baidu
+  max_per_keyword: 100
+  output_dir: datasets/{dataset_name}/raw
+
+# --- [2] VLMフィルター設定 ---
+vlm_filter:
+  ollama_url: http://127.0.0.1:11434
+  model: qwen2.5vl:7b
+  input_dir: datasets/{dataset_name}/raw
+  output_dir: datasets/{dataset_name}/filtered
+  # must_have: 全て満たす必要がある条件
+  must_have:
+    - "single character visible in frame"
+    - "full body or at least 3/4 body visible"
+    - "cargo pants or work pants visible"
+    - "t-shirt or casual top visible"
+  # must_not: 1つでも該当したら除外
+  must_not:
+    - "multiple people"
+    - "suit or formal wear"
+    - "swimwear or underwear"
+  min_score: 0.7   # 0.0〜1.0、総合スコアの閾値
+
+# --- [3] キャプション生成設定 ---
+caption:
+  ollama_url: http://127.0.0.1:11434
+  model: qwen2.5vl:7b
+  input_dir: datasets/{dataset_name}/filtered
+  output_dir: datasets/{dataset_name}/captioned
+  # キャプションの先頭に必ず付けるトリガーワード（LoRA学習用）
+  trigger_word: "example_outfit_style"
+  # キャプション生成プロンプト
+  prompt: |
+    Describe this image in detail for Stable Diffusion training.
+    Focus on: clothing style, colors, body position, background.
+    Format: comma-separated tags starting with the most important elements.
+    Be specific about clothing items and colors.
